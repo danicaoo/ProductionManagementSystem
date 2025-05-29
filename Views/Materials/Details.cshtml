@@ -1,0 +1,42 @@
+@model ProductionManagementSystem.ViewModels.MaterialViewModel
+@{
+    ViewData["Title"] = "Детали материала";
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ID</dt>
+                <dd class="col-sm-9">@Model.Id</dd>
+                
+                <dt class="col-sm-3">Название</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+                
+                <dt class="col-sm-3">Количество</dt>
+                <dd class="col-sm-9">@Model.Quantity.ToString("N2") @Model.UnitOfMeasure</dd>
+                
+                <dt class="col-sm-3">Минимальный запас</dt>
+                <dd class="col-sm-9">@Model.MinimalStock.ToString("N2") @Model.UnitOfMeasure</dd>
+                
+                <dt class="col-sm-3">Статус запаса</dt>
+                <dd class="col-sm-9">
+                    @if (Model.IsLowStock)
+                    {
+                        <span class="badge bg-danger">Низкий запас</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Достаточно</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Редактировать</a>
+            <a asp-action="Index" class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,81 @@
+@model ProductionManagementSystem.ViewModels.WorkOrderViewModel
+@{
+    ViewData["Title"] = "Редактирование заказа #" + Model.Id;
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="form-group mb-3">
+                    <label class="form-label">Продукт</label>
+                    <input class="form-control" value="@Model.ProductName" readonly />
+                    <input type="hidden" asp-for="ProductId" />
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Quantity" class="form-label">Количество</label>
+                    <input asp-for="Quantity" class="form-control" min="1" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label class="form-label">Текущая производственная линия</label>
+                    <input class="form-control" value="@Model.ProductionLineName" readonly />
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="ProductionLineId" class="form-label">Новая производственная линия</label>
+                    <select asp-for="ProductionLineId" class="form-control" asp-items="ViewBag.ProductionLines">
+                        <option value="">-- Не изменять --</option>
+                    </select>
+                    <span asp-validation-for="ProductionLineId" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Status" class="form-label">Статус</label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="Pending">Ожидающий</option>
+                        <option value="InProgress">В работе</option>
+                        <option value="Completed">Завершен</option>
+                        <option value="Cancelled">Отменен</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Progress" class="form-label">Прогресс (%)</label>
+                    <input asp-for="Progress" class="form-control" type="number" min="0" max="100" />
+                    <span asp-validation-for="Progress" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="StartDate" class="form-label">Дата начала</label>
+                    <input asp-for="StartDate" class="form-control" type="datetime-local" 
+                           value="@Model.StartDate.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Notes" class="form-label">Примечания</label>
+                    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

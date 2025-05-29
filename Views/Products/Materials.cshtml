@@ -1,0 +1,48 @@
+@model ProductionManagementSystem.ViewModels.ProductViewModel
+@{
+    ViewData["Title"] = "Материалы для продукта";
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]: @Model.Name</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>Технические характеристики</h5>
+            <ul class="list-group list-group-flush">
+                @foreach (var spec in Model.Specifications)
+                {
+                    <li class="list-group-item">
+                        <strong>@spec.Key:</strong> @spec.Value
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Необходимые материалы</h5>
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Материал</th>
+                        <th>Количество на единицу</th>
+                        <th>Ед. измерения</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var material in ViewBag.ProductMaterials)
+                    {
+                        <tr>
+                            <td>@material.MaterialName</td>
+                            <td>@material.RequiredQuantity.ToString("N2")</td>
+                            <td>@material.UnitOfMeasure</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            <a asp-action="Index" class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+</div>

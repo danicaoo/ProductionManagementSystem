@@ -1,0 +1,76 @@
+@model ProductionManagementSystem.ViewModels.WorkOrderViewModel
+@{
+    ViewData["Title"] = "Детали производственного заказа";
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ID заказа</dt>
+                <dd class="col-sm-9">@Model.Id</dd>
+                
+                <dt class="col-sm-3">Продукт</dt>
+                <dd class="col-sm-9">@Model.ProductName</dd>
+                
+                <dt class="col-sm-3">Производственная линия</dt>
+                <dd class="col-sm-9">@Model.ProductionLineName</dd>
+                
+                <dt class="col-sm-3">Количество</dt>
+                <dd class="col-sm-9">@Model.Quantity</dd>
+                
+                <dt class="col-sm-3">Статус</dt>
+                <dd class="col-sm-9">
+                    <span class="badge @GetStatusBadgeClass(Model.Status)">
+                        @Model.Status
+                    </span>
+                </dd>
+                
+                <dt class="col-sm-3">Прогресс</dt>
+                <dd class="col-sm-9">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: @(Model.Progress)%;" 
+                             aria-valuenow="@Model.Progress" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            @Model.Progress%
+                        </div>
+                    </div>
+                </dd>
+                
+                <dt class="col-sm-3">Дата начала</dt>
+                <dd class="col-sm-9">@Model.StartDate.ToString("dd.MM.yyyy HH:mm")</dd>
+                
+                <dt class="col-sm-3">Срок завершения</dt>
+                <dd class="col-sm-9">@Model.EstimatedEndDate.ToString("dd.MM.yyyy HH:mm")</dd>
+                
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <dt class="col-sm-3">Примечания</dt>
+                    <dd class="col-sm-9">@Model.Notes</dd>
+                }
+            </dl>
+        </div>
+        <div class="card-footer">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Редактировать</a>
+            <a asp-action="Index" class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "InProgress" => "badge-primary",
+            "Pending" => "badge-warning",
+            "Completed" => "badge-success",
+            "Cancelled" => "badge-danger",
+            _ => "badge-secondary"
+        };
+    }
+}

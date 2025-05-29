@@ -1,0 +1,49 @@
+@model ProductionManagementSystem.ViewModels.ProductionLineViewModel
+
+@{
+    ViewData["Title"] = "Добавить производственную линию";
+}
+
+<div class="container mt-4">
+    <h2>@ViewData["Title"]</h2>
+    <hr />
+    
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="form-label">Название линии</label>
+                    <input asp-for="Name" class="form-control" placeholder="Введите название линии"/>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Status" class="form-label">Статус</label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="Active">Активна</option>
+                        <option value="Stopped">Остановлена</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="EfficiencyFactor" class="form-label">Коэффициент эффективности</label>
+                    <input asp-for="EfficiencyFactor" class="form-control" type="number" step="0.1" min="0.5" max="2.0" value="1.0"/>
+                    <small class="form-text text-muted">1.0 - нормальная производительность (допустимый диапазон 0.5-2.0)</small>
+                    <span asp-validation-for="EfficiencyFactor" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

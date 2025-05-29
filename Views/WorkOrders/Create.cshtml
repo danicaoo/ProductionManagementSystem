@@ -1,0 +1,99 @@
+@model ProductionManagementSystem.ViewModels.WorkOrderViewModel
+@{
+    ViewData["Title"] = "Создать производственный заказ";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">@ViewData["Title"]</h3>
+                </div>
+                
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="createForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="alert alert-danger" asp-validation-summary="ModelOnly"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Продукт -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="ProductId" class="form-label">Продукт *</label>
+                                    <select asp-for="ProductId" class="form-select" asp-items="ViewBag.Products" required>
+                                        <option value="">-- Выберите продукт --</option>
+                                    </select>
+                                    <span asp-validation-for="ProductId" class="text-danger small"></span>
+                                </div>
+                                
+                                <!-- Количество -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Quantity" class="form-label">Количество *</label>
+                                    <input asp-for="Quantity" class="form-control" min="1" required value="1"/>
+                                    <span asp-validation-for="Quantity" class="text-danger small"></span>
+                                </div>
+                                
+                                <!-- Статус -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Status" class="form-label">Статус *</label>
+                                    <select asp-for="Status" class="form-select" required>
+                                        <option value="Pending">Ожидает</option>
+                                        <option value="InProgress">В работе</option>
+                                        <option value="Completed">Завершен</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <!-- Производственная линия -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="ProductionLineId" class="form-label">Производственная линия</label>
+                                    <select asp-for="ProductionLineId" class="form-select" asp-items="ViewBag.ProductionLines">
+                                        <option value="">-- Не назначена --</option>
+                                    </select>
+                                    <span asp-validation-for="ProductionLineId" class="text-danger small"></span>
+                                </div>
+                                
+                                <!-- Дата начала -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="StartDate" class="form-label">Дата начала *</label>
+                                    <input asp-for="StartDate" class="form-control" type="datetime-local" 
+                                           value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
+                                    <span asp-validation-for="StartDate" class="text-danger small"></span>
+                                </div>
+                                
+                                <!-- Прогресс -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Progress" class="form-label">Прогресс (%)</label>
+                                    <input asp-for="Progress" type="range" class="form-range" min="0" max="100" value="0"
+                                           oninput="document.getElementById('progressValue').innerText = this.value">
+                                    <span class="small text-muted">Текущий прогресс: <span id="progressValue">0</span>%</span>
+                                    <span asp-validation-for="Progress" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Примечания -->
+                        <div class="form-group mb-3">
+                            <label asp-for="Notes" class="form-label">Примечания</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary px-4 me-2">
+                                <i class="fas fa-check-circle me-2"></i>Создать
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times-circle me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

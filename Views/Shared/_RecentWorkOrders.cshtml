@@ -1,0 +1,59 @@
+@model List<ProductionManagementSystem.ViewModels.WorkOrderViewModel>
+
+<table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th>ID</th>
+            <th>Продукт</th>
+            <th>Производственная линия</th>
+            <th>Количество</th>
+            <th>Статус</th>
+            <th>Прогресс</th>
+            <th>Дата начала</th>
+            <th>Срок завершения</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.Id</td>
+                <td>@order.ProductName</td>
+                <td>@order.ProductionLineName</td>
+                <td>@order.Quantity</td>
+                <td>
+                    <span class="badge @GetStatusBadgeClass(order.Status)" style="color: black;">
+                        @order.Status
+                    </span>
+                </td>
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: @(order.Progress)%;" 
+                             aria-valuenow="@order.Progress" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            @order.Progress%
+                        </div>
+                    </div>
+                </td>
+                <td>@order.StartDate.ToString("dd.MM.yyyy")</td>
+                <td>@order.EstimatedEndDate.ToString("dd.MM.yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "InProgress" => "badge-primary",
+            "Pending" => "badge-warning",
+            "Completed" => "badge-success",
+            "Cancelled" => "badge-danger",
+            _ => "badge-secondary"
+        };
+    }
+}

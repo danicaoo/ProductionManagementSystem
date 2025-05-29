@@ -1,0 +1,71 @@
+﻿@model ProductionManagementSystem.ViewModels.HomeDashboardViewModel
+@{
+    ViewData["Title"] = "Панель управления производством";
+}
+
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+    
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Активные заказы</h5>
+                    <p class="card-text display-4">@Model.ActiveOrders</p>
+                </div>
+                <div class="card-footer">
+                    <a asp-controller="WorkOrders" asp-action="Index" class="text-white">Просмотреть</a>
+                </div>
+            </div>
+        </div>
+     
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Ожидающие заказы</h5>
+                    <p class="card-text display-4">@Model.PendingOrders</p>
+                </div>
+                <div class="card-footer">
+                    <a asp-controller="WorkOrders" asp-action="Index" class="text-white">Просмотреть</a>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-danger h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Материалы с низким запасом</h5>
+                    <p class="card-text display-4">@Model.LowStockMaterials</p>
+                </div>
+                <div class="card-footer">
+                    <a asp-controller="Materials" asp-action="Index" class="text-white">Просмотреть</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Активные линии</h5>
+                    <p class="card-text display-4">@Model.ActiveLines</p>
+                </div>
+                <div class="card-footer">
+                    <a asp-controller="ProductionLines" asp-action="Index" class="text-white">Просмотреть</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.RecentWorkOrders != null && Model.RecentWorkOrders.Any())
+    {
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Последние производственные заказы</h5>
+            </div>
+            <div class="card-body">
+                <partial name="_RecentWorkOrders" model="Model.RecentWorkOrders" />
+            </div>
+        </div>
+    }
+</div>

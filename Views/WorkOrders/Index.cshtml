@@ -1,0 +1,108 @@
+@model IEnumerable<ProductionManagementSystem.ViewModels.WorkOrderViewModel>
+@{
+    ViewData["Title"] = "Производственные заказы";
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+    
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-primary">Создать заказ</a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <form asp-action="Index" method="get" class="form-inline">
+                <div class="form-group mb-2">
+                    <label for="status" class="sr-only">Статус</label>
+                    <select name="status" class="form-control">
+                        <option value="">Все статусы</option>
+                        <option value="Pending">Ожидающие</option>
+                        <option value="InProgress">В работе</option>
+                        <option value="Completed">Завершенные</option>
+                        <option value="Cancelled">Отмененные</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mb-2 ml-2">Фильтровать</button>
+            </form>
+        </div>
+    </div>
+    
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Продукт</th>
+                <th>Количество</th>
+                <th>Производственная линия</th>
+                <th>Статус</th>
+                <th>Прогресс</th>
+                <th>Срок выполнения</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@(item.ProductName ?? "Неизвестный продукт")</td>
+                    <td>@item.Quantity</td>
+                    <td>@(item.ProductionLineName ?? "Не назначена")</td>
+                    <td>
+                        <span class="badge @GetStatusBadgeClass(item.Status)">
+                            @item.Status
+                        </span>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar @GetProgressBarClass(item.Progress)" 
+                                 role="progressbar" 
+                                 style="width: @item.Progress%;" 
+                                 aria-valuenow="@item.Progress" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                @item.Progress%
+                            </div>
+                        </div>
+                    </td>
+                    <td>@item.EstimatedEndDate.ToString("g")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Детали</a>
+                        @if (item.Status == "Pending")
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Изменить</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    @functions {
+        string GetStatusBadgeClass(string status)
+        {
+            return status switch
+            {
+                "Pending" => "bg-secondary",
+                "InProgress" => "bg-primary",
+                "Completed" => "bg-success",
+                "Cancelled" => "bg-danger",
+                _ => "bg-light text-dark"
+            };
+        }
+        
+        string GetProgressBarClass(decimal progress)
+        {
+            return progress switch
+            {
+                >= 100 => "bg-success",
+                >= 70 => "bg-primary",
+                >= 40 => "bg-info",
+                _ => "bg-warning"
+            };
+        }
+    }
+}
