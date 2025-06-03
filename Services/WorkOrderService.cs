@@ -3,6 +3,7 @@ using ProductionManagementSystem.Data;
 using ProductionManagementSystem.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProductionManagementSystem.Services
@@ -10,14 +11,77 @@ namespace ProductionManagementSystem.Services
     public class WorkOrderService : IWorkOrderService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IProductionService _productionService;
+    private readonly IProductionService _productionService;
+    private readonly ILogger<WorkOrderService> _logger; 
 
-        public WorkOrderService(ApplicationDbContext context, IProductionService productionService)
+    public WorkOrderService(
+        ApplicationDbContext context, 
+        IProductionService productionService,
+        ILogger<WorkOrderService> logger)
+    {
+        _context = context;
+        _productionService = productionService;
+        _logger = logger;
+    }
+
+    public async Task<(WorkOrder? workOrder, Dictionary<int, decimal>? missingMaterials)> 
+        CreateWorkOrderAsync(WorkOrder workOrder)
+    {
+        var availabilityResult = await _productionService.CheckMaterialsAvailability(
+            workOrder.ProductId, workOrder.Quantity);
+            
+        var product = await _context.Products.FindAsync(workOrder.ProductId);
+        var productionLine = workOrder.ProductionLineId.HasValue
+            ? await _context.ProductionLines.FindAsync(workOrder.ProductionLineId.Value)
+            : null;
+        
+        if (product == null)
+            throw new ArgumentException("Product not found");
+        
+        workOrder.CalculateTotalMinutes(product, productionLine);
+        workOrder.StartDate = DateTime.Now;
+        workOrder.Progress = 0;
+        workOrder.Status = "InProgress";
+        
+        if (!availabilityResult.IsAvailable)
+            {
+                return (null, availabilityResult.MissingMaterials);
+            }
+
+        try
         {
-            _context = context;
-            _productionService = productionService;
+            var reserveResult = await _productionService.ReserveMaterials(
+                workOrder.ProductId, workOrder.Quantity);
+            
+            if (!reserveResult)
+            {
+                return (null, null);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка резервирования материалов");
+            return (null, null);
         }
 
+        workOrder.EstimatedEndDate = workOrder.StartDate.Add(
+            await _productionService.CalculateProductionTime(
+                workOrder.ProductId, workOrder.Quantity, workOrder.ProductionLineId));
+        
+        workOrder.Status = "InProgress";
+
+        try
+        {
+            _context.WorkOrders.Add(workOrder);
+            await _context.SaveChangesAsync();
+            return (workOrder, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при создании заказа");
+            return (null, null);
+        }
+    }
         public async Task<List<WorkOrder>> GetWorkOrdersAsync(string? status, string? date)
         {
             IQueryable<WorkOrder> query = _context.WorkOrders
@@ -36,35 +100,6 @@ namespace ProductionManagementSystem.Services
             }
 
             return await query.ToListAsync();
-        }
-
-        public async Task<WorkOrder> CreateWorkOrderAsync(WorkOrder workOrder)
-        {
-            var materialsAvailable = await _productionService.CheckMaterialsAvailability(
-                workOrder.ProductId, workOrder.Quantity);
-            
-            if (!materialsAvailable)
-            {
-                throw new InvalidOperationException("Not enough materials available");
-            }
-
-            var productionTime = await _productionService.CalculateProductionTime(
-                workOrder.ProductId, workOrder.Quantity, workOrder.ProductionLineId);
-            
-            workOrder.EstimatedEndDate = workOrder.StartDate.Add(productionTime);
-
-            var materialsReserved = await _productionService.ReserveMaterials(
-                workOrder.ProductId, workOrder.Quantity);
-            
-            if (!materialsReserved)
-            {
-                throw new InvalidOperationException("Failed to reserve materials");
-            }
-
-            _context.WorkOrders.Add(workOrder);
-            await _context.SaveChangesAsync();
-
-            return workOrder;
         }
 
         public async Task UpdateWorkOrderProgressAsync(int id, decimal progress)

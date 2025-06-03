@@ -25,8 +25,7 @@ namespace ProductionManagementSystem.Models
         [Range(1, int.MaxValue)]
         public int ProductionTimePerUnit { get; set; }
 
-        // Навигационное свойство для связи с материалами
-        public ICollection<ProductMaterial> ProductMaterials { get; set; } = new List<ProductMaterial>();
+         public virtual ICollection<ProductMaterial> ProductMaterials { get; set; } = new List<ProductMaterial>();
 
         public Dictionary<string, string> GetSpecifications()
         {
@@ -37,5 +36,6 @@ namespace ProductionManagementSystem.Models
         {
             Specifications = JsonSerializer.Serialize(specs);
         }
+        
     }
 }

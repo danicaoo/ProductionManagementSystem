@@ -1,66 +1,41 @@
 @model ProductionManagementSystem.ViewModels.WorkOrderViewModel
 @{
-    ViewData["Title"] = "Детали производственного заказа";
+    ViewData["Title"] = "Детали заказа";
 }
 
 <div class="container">
     <h1 class="my-4">@ViewData["Title"]</h1>
     
-    <div class="card">
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">ID заказа</dt>
-                <dd class="col-sm-9">@Model.Id</dd>
-                
-                <dt class="col-sm-3">Продукт</dt>
-                <dd class="col-sm-9">@Model.ProductName</dd>
-                
-                <dt class="col-sm-3">Производственная линия</dt>
-                <dd class="col-sm-9">@Model.ProductionLineName</dd>
-                
-                <dt class="col-sm-3">Количество</dt>
-                <dd class="col-sm-9">@Model.Quantity</dd>
-                
-                <dt class="col-sm-3">Статус</dt>
-                <dd class="col-sm-9">
-                    <span class="badge @GetStatusBadgeClass(Model.Status)">
-                        @Model.Status
-                    </span>
-                </dd>
-                
-                <dt class="col-sm-3">Прогресс</dt>
-                <dd class="col-sm-9">
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar" 
-                             style="width: @(Model.Progress)%;" 
-                             aria-valuenow="@Model.Progress" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100">
-                            @Model.Progress%
-                        </div>
-                    </div>
-                </dd>
-                
-                <dt class="col-sm-3">Дата начала</dt>
-                <dd class="col-sm-9">@Model.StartDate.ToString("dd.MM.yyyy HH:mm")</dd>
-                
-                <dt class="col-sm-3">Срок завершения</dt>
-                <dd class="col-sm-9">@Model.EstimatedEndDate.ToString("dd.MM.yyyy HH:mm")</dd>
-                
-                @if (!string.IsNullOrEmpty(Model.Notes))
-                {
-                    <dt class="col-sm-3">Примечания</dt>
-                    <dd class="col-sm-9">@Model.Notes</dd>
-                }
-            </dl>
-        </div>
-        <div class="card-footer">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Редактировать</a>
-            <a asp-action="Index" class="btn btn-secondary">Назад к списку</a>
+    <div class="progress mb-4" style="height: 30px;">
+        <div class="progress-bar progress-bar-striped @(Model.Status == "InProgress" ? "progress-bar-animated" : "")" 
+             role="progressbar" 
+             style="width: @(Model.ProgressPercentage)%" 
+             aria-valuenow="@Model.ProgressPercentage" 
+             aria-valuemin="0" 
+             aria-valuemax="100">
+            @Model.ProgressPercentage%
         </div>
     </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">Прогресс выполнения</div>
+        <div class="card-body">
+            <p>Выполнено: @Model.MinutesCompleted минут</p>
+            <p>Осталось: @(Model.TotalMinutesRequired - Model.MinutesCompleted) минут</p>
+            <p>Всего: @Model.TotalMinutesRequired минут</p>
+            <p>Начало: @Model.ActualStartDate?.ToString("g")</p>
+            @if (Model.Status == "Completed")
+            {
+                <p>Завершено: @Model.ActualEndDate?.ToString("g")</p>
+            }
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Редактировать</a>
+        <a asp-action="Index" class="btn btn-secondary">Назад к списку</a>
+    </div>
 </div>
-
 @functions {
     string GetStatusBadgeClass(string status)
     {
@@ -73,4 +48,22 @@
             _ => "badge-secondary"
         };
     }
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/progressHub")
+            .build();
+
+        connection.on("ReceiveProgressUpdate", (orderId, progress) => {
+            if (orderId === @Model.Id) {
+                document.querySelector('.progress-bar').style.width = `${progress}%`;
+                document.querySelector('.progress-bar').textContent = `${progress}%`;
+            }
+        });
+
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
 }

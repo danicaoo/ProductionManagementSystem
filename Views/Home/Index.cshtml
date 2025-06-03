@@ -1,42 +1,41 @@
-﻿@model ProductionManagementSystem.ViewModels.HomeDashboardViewModel
+@model ProductionManagementSystem.ViewModels.HomeDashboardViewModel
 @{
     ViewData["Title"] = "Панель управления производством";
 }
 
-
 <div class="container">
     <h1 class="my-4">@ViewData["Title"]</h1>
     
-    <div class="row">
-        <div class="col-md-3 mb-4">
+    <div class="row g-4">
+        <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card text-white bg-primary h-100">
                 <div class="card-body">
                     <h5 class="card-title">Активные заказы</h5>
-                    <p class="card-text display-4">@Model.ActiveOrders</p>
+                    <p class="card-text display-4" id="activeOrdersCounter">@Model.ActiveOrders</p>
                 </div>
                 <div class="card-footer">
                     <a asp-controller="WorkOrders" asp-action="Index" class="text-white">Просмотреть</a>
                 </div>
             </div>
         </div>
-     
-        <div class="col-md-3 mb-4">
+        
+        <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card text-white bg-warning h-100">
                 <div class="card-body">
                     <h5 class="card-title">Ожидающие заказы</h5>
-                    <p class="card-text display-4">@Model.PendingOrders</p>
+                    <p class="card-text display-4" id="pendingOrdersCounter">@Model.PendingOrders</p>
                 </div>
                 <div class="card-footer">
                     <a asp-controller="WorkOrders" asp-action="Index" class="text-white">Просмотреть</a>
                 </div>
             </div>
         </div>
- 
-        <div class="col-md-3 mb-4">
+        
+        <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card text-white bg-danger h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Материалы с низким запасом</h5>
-                    <p class="card-text display-4">@Model.LowStockMaterials</p>
+                    <h5 class="card-title">Низкий запас</h5>
+                    <p class="card-text display-4" id="lowStockMaterialsCounter">@Model.LowStockMaterials</p>
                 </div>
                 <div class="card-footer">
                     <a asp-controller="Materials" asp-action="Index" class="text-white">Просмотреть</a>
@@ -44,14 +43,26 @@
             </div>
         </div>
 
-        <div class="col-md-3 mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card text-white bg-success h-100">
                 <div class="card-body">
                     <h5 class="card-title">Активные линии</h5>
-                    <p class="card-text display-4">@Model.ActiveLines</p>
+                    <p class="card-text display-4" id="activeLinesCounter">@Model.ActiveLines</p>
                 </div>
                 <div class="card-footer">
                     <a asp-controller="ProductionLines" asp-action="Index" class="text-white">Просмотреть</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Всего продуктов</h5>
+                    <p class="card-text display-4" id="totalProductsCounter">@Model.TotalProducts</p>
+                </div>
+                <div class="card-footer">
+                    <a asp-controller="Products" asp-action="Index" class="text-white">Просмотреть</a>
                 </div>
             </div>
         </div>
@@ -59,13 +70,191 @@
 
     @if (Model.RecentWorkOrders != null && Model.RecentWorkOrders.Any())
     {
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5>Последние производственные заказы</h5>
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                    <span>Текущие производственные заказы</span>
+                    <small class="fw-normal">Обновляется в реальном времени</small>
+                </h5>
             </div>
-            <div class="card-body">
-                <partial name="_RecentWorkOrders" model="Model.RecentWorkOrders" />
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Продукт</th>
+                                <th>Прогресс</th>
+                                <th>Статус</th>
+                                <th>Время</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentWorkOrders)
+                            {
+                                <tr id="order-row-@order.Id">
+                                    <td>@order.Id</td>
+                                    <td>@order.ProductName</td>
+                                    <td style="min-width: 220px;">
+                                        <div class="d-flex flex-column">
+                                            <div class="progress" data-order-id="@order.Id" style="height: 24px;">
+                                                <div class="progress-bar progress-bar-striped 
+                                                    @(order.Status == "InProgress" ? "progress-bar-animated" : "")"
+                                                    role="progressbar" 
+                                                    style="width: @order.Progress%;"
+                                                    aria-valuenow="@order.Progress" 
+                                                    aria-valuemin="0" 
+                                                    aria-valuemax="100">
+                                                    <span class="progress-text">@order.Progress%</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-1 small">
+                                                <span id="minutes-completed-@order.Id">@order.MinutesCompleted мин</span>
+                                                <span>из</span>
+                                                <span id="total-minutes-@order.Id">@order.TotalMinutesRequired мин</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill py-2 px-3" 
+                                            id="status-@order.Id"
+                                            data-status="@order.Status">
+                                            @order.Status
+                                        </span>
+                                    </td>
+                                    <td id="time-remaining-@order.Id">
+                                        @if (order.Status == "InProgress")
+                                        {
+                                            @($"{order.TotalMinutesRequired - order.MinutesCompleted} мин осталось")
+                                        }
+                                        else if (order.Status == "Completed")
+                                        {
+                                            @("Завершено")
+                                        }
+                                        else
+                                        {
+                                            @("Ожидание")
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     }
 </div>
+
+@section Styles {
+    <style>
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        .badge {
+            font-weight: 500;
+            min-width: 100px;
+            text-align: center;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('[data-status]').each(function() {
+                updateStatusBadge($(this));
+            });
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/progressHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            connection.on("ReceiveProgressUpdate", 
+                (orderId, progress, status, minutesCompleted, totalMinutes) => {
+                    
+                console.log(`Order ${orderId} updated: ${progress}%, status: ${status}`);
+                
+                const progressBar = $(`.progress[data-order-id="${orderId}"] .progress-bar`);
+                if (progressBar.length) {
+                    progressBar.css('width', `${progress}%`);
+                    
+                    progressBar.find('.progress-text').text(`${progress}%`);
+                    progressBar.attr('aria-valuenow', progress);
+                    
+                    if (status === "InProgress") {
+                        progressBar.addClass("progress-bar-animated");
+                    } else {
+                        progressBar.removeClass("progress-bar-animated");
+                    }
+                    
+                    progressBar.removeClass("bg-success bg-warning bg-info bg-primary")
+                               .addClass(getProgressBarClass(progress));
+                }
+                
+                $(`#minutes-completed-${orderId}`).text(`${minutesCompleted} мин`);
+                $(`#total-minutes-${orderId}`).text(`${totalMinutes} мин`);
+                
+                const statusBadge = $(`#status-${orderId}`);
+                if (statusBadge.length) {
+                    statusBadge.attr('data-status', status);
+                    statusBadge.text(status);
+                    updateStatusBadge(statusBadge);
+                }
+                
+                const timeRemaining = $(`#time-remaining-${orderId}`);
+                if (timeRemaining.length) {
+                    if (status === "Completed") {
+                        timeRemaining.text("Завершено");
+                    } else if (status === "InProgress") {
+                        const remaining = totalMinutes - minutesCompleted;
+                        timeRemaining.text(`${remaining} мин осталось`);
+                    }
+                }
+                
+                updateDashboardCounters();
+            });
+
+            connection.start()
+                .then(() => console.log("SignalR connection established"))
+                .catch(err => console.error('SignalR Connection Error:', err));
+
+            function updateStatusBadge(element) {
+                const status = element.attr('data-status');
+                element.removeClass("bg-primary bg-success bg-warning bg-danger bg-secondary")
+                       .addClass(getStatusClass(status));
+            }
+
+            function getStatusClass(status) {
+                switch(status) {
+                    case "InProgress": return "bg-primary";
+                    case "Completed": return "bg-success";
+                    case "Pending": return "bg-warning";
+                    case "Cancelled": return "bg-danger";
+                    default: return "bg-secondary";
+                }
+            }
+
+            function getProgressBarClass(progress) {
+                if (progress >= 100) return "bg-success";
+                if (progress >= 70) return "bg-primary";
+                if (progress >= 40) return "bg-info";
+                return "bg-warning";
+            }
+
+            function updateDashboardCounters() {
+                $.get("/Home/GetDashboardCounters", function(data) {
+                    $("#activeOrdersCounter").text(data.activeOrders);
+                    $("#pendingOrdersCounter").text(data.pendingOrders);
+                    $("#lowStockMaterialsCounter").text(data.lowStockMaterials);
+                    $("#activeLinesCounter").text(data.activeLines);
+                    $("#totalProductsCounter").text(data.totalProducts);
+                }).fail(function(error) {
+                    console.error("Error updating dashboard counters:", error);
+                });
+            }
+        });
+    </script>
+}

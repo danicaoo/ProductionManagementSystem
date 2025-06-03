@@ -16,16 +16,16 @@ namespace ProductionManagementSystem.Data
         public DbSet<ProductMaterial> ProductMaterials { get; set; }
         public DbSet<WorkOrder> WorkOrders { get; set; }
 
+        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Конфигурация для Material
             modelBuilder.Entity<Material>(entity =>
             {
                 entity.Property(m => m.Quantity).HasPrecision(18, 2);
                 entity.Property(m => m.MinimalStock).HasPrecision(18, 2);
             });
 
-            // Конфигурация для ProductMaterial
             modelBuilder.Entity<ProductMaterial>(entity =>
             {
                 entity.HasKey(pm => new { pm.ProductId, pm.MaterialId });
@@ -40,7 +40,6 @@ namespace ProductionManagementSystem.Data
                       .HasForeignKey(pm => pm.MaterialId);
             });
 
-            // Конфигурация для WorkOrder
             modelBuilder.Entity<WorkOrder>(entity =>
             {
                 entity.Property(wo => wo.Progress).HasPrecision(5, 2);
@@ -59,8 +58,7 @@ namespace ProductionManagementSystem.Data
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                optionsBuilder.UseSqlite("Data Source=Production.db")
-                    .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            optionsBuilder.UseSqlite("Data Source=Production.db");
             }
 
     }

@@ -1,0 +1,130 @@
+@model ProductionManagementSystem.ViewModels.ProductViewModel
+@{
+    ViewData["Title"] = "Создание продукта";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Name" class="control-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="control-label"></label>
+                        <textarea asp-for="Description" class="form-control"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Category" class="control-label"></label>
+                        <input asp-for="Category" class="form-control" />
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="MinimalStock" class="control-label"></label>
+                        <input asp-for="MinimalStock" class="form-control" />
+                        <span asp-validation-for="MinimalStock" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="ProductionTimePerUnit" class="control-label"></label>
+                        <input asp-for="ProductionTimePerUnit" class="form-control" />
+                        <span asp-validation-for="ProductionTimePerUnit" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Материалы для производства</h5>
+                </div>
+                <div class="card-body">
+                    <div id="materials-container">
+                        @if (Model.ProductMaterials != null)
+                        {
+                            for (int i = 0; i < Model.ProductMaterials.Count; i++)
+                            {
+                                <div class="row mb-3 material-item">
+                                    <div class="col-md-5">
+                                        <select asp-for="ProductMaterials[i].MaterialId" class="form-control" 
+                                                asp-items="ViewBag.MaterialsList">
+                                            <option value="">Выберите материал</option>
+                                        </select>
+                                        <span asp-validation-for="ProductMaterials[i].MaterialId" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input asp-for="ProductMaterials[i].QuantityNeeded" class="form-control" placeholder="Количество" type="number" step="0.01" />
+                                        <span asp-validation-for="ProductMaterials[i].QuantityNeeded" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        @if (i > 0)
+                                        {
+                                            <button type="button" class="btn btn-danger remove-material">Удалить</button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <button type="button" id="add-material" class="btn btn-secondary mt-2">Добавить материал</button>
+                </div>
+            </div>
+            
+            <div class="form-group mt-3">
+                <input type="submit" value="Создать" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            $('#add-material').click(function() {
+                var index = $('.material-item').length;
+                var html = `
+                    <div class="row mb-3 material-item">
+                        <div class="col-md-5">
+                            <select name="ProductMaterials[${index}].MaterialId" class="form-control">
+                                <option value="">Выберите материал</option>
+                                @if (ViewBag.AllMaterials != null)
+                                {
+                                    foreach (var material in ViewBag.AllMaterials)
+                                    {
+                                        <option value="@material.Id">@material.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <input name="ProductMaterials[${index}].QuantityNeeded" class="form-control" placeholder="Количество" type="number" step="0.01" />
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger remove-material">Удалить</button>
+                        </div>
+                    </div>
+                `;
+                $('#materials-container').append(html);
+            });
+            
+            $(document).on('click', '.remove-material', function() {
+                $(this).closest('.material-item').remove();
+            });
+        });
+    </script>
+}

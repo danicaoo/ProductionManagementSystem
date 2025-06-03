@@ -91,6 +91,9 @@ namespace ProductionManagementSystem.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UnitOfMeasure")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("ProductId", "MaterialId");
 
                     b.HasIndex("MaterialId");
@@ -104,8 +107,8 @@ namespace ProductionManagementSystem.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("CurrentWorkOrderId")
-                        .HasColumnType("INTEGER");
+                    b.Property<float?>("CurrentWorkOrderId")
+                        .HasColumnType("REAL");
 
                     b.Property<float>("EfficiencyFactor")
                         .HasColumnType("REAL");
@@ -153,6 +156,7 @@ namespace ProductionManagementSystem.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 

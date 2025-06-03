@@ -1,6 +1,3 @@
-
-using System.Collections.Generic;
-
 namespace ProductionManagementSystem.ViewModels
 {
     public class HomeDashboardViewModel
@@ -9,6 +6,7 @@ namespace ProductionManagementSystem.ViewModels
         public int PendingOrders { get; set; }
         public int LowStockMaterials { get; set; }
         public int ActiveLines { get; set; }
+        public int TotalProducts { get; set; }
         public List<WorkOrderViewModel> RecentWorkOrders { get; set; } = new List<WorkOrderViewModel>();
     }
 }

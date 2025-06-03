@@ -27,11 +27,48 @@ namespace ProductionManagementSystem.Models
 
         [Required]
         [StringLength(20)]
-        public string Status { get; set; } = "Pending"; 
+        public string Status { get; set; } = "Pending";
 
         [Range(0, 100)]
         public decimal Progress { get; set; } = 0;
 
         public string? Notes { get; set; }
+
+        public int TotalMinutesRequired { get; set; }
+        public DateTime? ActualStartDate { get; set; }
+        public DateTime? ActualEndDate { get; set; }
+
+        public void CalculateTotalMinutes(Product product, ProductionLine? line)
+        {
+            if (product == null) return;
+
+            float efficiency = line?.EfficiencyFactor ?? 1.0f;
+            TotalMinutesRequired = (int)Math.Ceiling(product.ProductionTimePerUnit * Quantity / efficiency);
+        }
+
+        public int MinutesCompleted
+        {
+            get
+            {
+                if (!ActualStartDate.HasValue) return 0;
+                if (Status == "Completed") return TotalMinutesRequired;
+
+                var elapsed = DateTime.Now - ActualStartDate.Value;
+                return (int)Math.Min(elapsed.TotalMinutes, TotalMinutesRequired);
+            }
+        }
+
+        [NotMapped]
+        public int ProgressPercentage
+        {
+            get
+            {
+                if (TotalMinutesRequired <= 0) return 0;
+                return (int)((double)MinutesCompleted / TotalMinutesRequired * 100);
+            }
+        }
+
+
     }
-}
+    
+ }

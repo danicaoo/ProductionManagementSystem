@@ -34,19 +34,38 @@ namespace ProductionManagementSystem.ViewModels
             get => JsonSerializer.Deserialize<Dictionary<string, string>>(SpecificationsJson) ?? new Dictionary<string, string>();
             set => SpecificationsJson = JsonSerializer.Serialize(value);
         }
+        public List<ProductMaterialViewModel> ProductMaterials { get; set; } = new List<ProductMaterialViewModel>();
 
         public ProductViewModel() { }
 
         public ProductViewModel(Product product)
+{
+    Id = product.Id;
+    Name = product.Name ?? string.Empty;
+    Description = product.Description ?? string.Empty;
+    SpecificationsJson = product.Specifications;
+    Category = product.Category ?? string.Empty;
+    MinimalStock = product.MinimalStock;
+    ProductionTimePerUnit = product.ProductionTimePerUnit;
+
+    // Заполняем информацию о материалах
+    if (product.ProductMaterials != null)
+    {
+        ProductMaterials = product.ProductMaterials.Select(pm => new ProductMaterialViewModel
         {
-            Id = product.Id;
-            Name = product.Name ?? string.Empty;
-            Description = product.Description ?? string.Empty;
-            SpecificationsJson = product.Specifications;
-            Category = product.Category ?? string.Empty;
-            MinimalStock = product.MinimalStock;
-            ProductionTimePerUnit = product.ProductionTimePerUnit;
-        }
+            MaterialId = pm.MaterialId,
+            MaterialName = pm.Material?.Name ?? "Неизвестный материал",
+            QuantityNeeded = pm.QuantityNeeded,
+            UnitOfMeasure = pm.Material?.UnitOfMeasure ?? "н/д"
+        }).ToList();
+    }
+    else
+    {
+        ProductMaterials = new List<ProductMaterialViewModel>();
+    }
+}
+
+        
 
         public Product ToProduct()
         {
@@ -60,6 +79,21 @@ namespace ProductionManagementSystem.ViewModels
                 MinimalStock = MinimalStock,
                 ProductionTimePerUnit = ProductionTimePerUnit
             };
+        } 
+            
+            
+            [Display(Name = "Материалы для продукта")]
+            public List<int> SelectedMaterialIds { get; set; } = new List<int>();
+            
+            [Display(Name = "Количество для каждого материала")]
+            public Dictionary<int, decimal> MaterialQuantities { get; set; } = new Dictionary<int, decimal>();
+
+            public class ProductMaterialViewModel
+        {
+            public int MaterialId { get; set; }
+            public string? MaterialName { get; set; }
+            public decimal QuantityNeeded { get; set; }
+            public string? UnitOfMeasure { get; set; }
         }
     }
 }

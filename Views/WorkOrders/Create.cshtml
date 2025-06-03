@@ -1,8 +1,15 @@
 @model ProductionManagementSystem.ViewModels.WorkOrderViewModel
+
 @{
     ViewData["Title"] = "Создать производственный заказ";
 }
 
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -19,7 +26,6 @@
                         
                         <div class="row">
                             <div class="col-md-6">
-                                <!-- Продукт -->
                                 <div class="form-group mb-3">
                                     <label asp-for="ProductId" class="form-label">Продукт *</label>
                                     <select asp-for="ProductId" class="form-select" asp-items="ViewBag.Products" required>
@@ -28,14 +34,12 @@
                                     <span asp-validation-for="ProductId" class="text-danger small"></span>
                                 </div>
                                 
-                                <!-- Количество -->
                                 <div class="form-group mb-3">
                                     <label asp-for="Quantity" class="form-label">Количество *</label>
                                     <input asp-for="Quantity" class="form-control" min="1" required value="1"/>
                                     <span asp-validation-for="Quantity" class="text-danger small"></span>
                                 </div>
                                 
-                                <!-- Статус -->
                                 <div class="form-group mb-3">
                                     <label asp-for="Status" class="form-label">Статус *</label>
                                     <select asp-for="Status" class="form-select" required>
@@ -48,7 +52,6 @@
                             </div>
                             
                             <div class="col-md-6">
-                                <!-- Производственная линия -->
                                 <div class="form-group mb-3">
                                     <label asp-for="ProductionLineId" class="form-label">Производственная линия</label>
                                     <select asp-for="ProductionLineId" class="form-select" asp-items="ViewBag.ProductionLines">
@@ -57,7 +60,6 @@
                                     <span asp-validation-for="ProductionLineId" class="text-danger small"></span>
                                 </div>
                                 
-                                <!-- Дата начала -->
                                 <div class="form-group mb-3">
                                     <label asp-for="StartDate" class="form-label">Дата начала *</label>
                                     <input asp-for="StartDate" class="form-control" type="datetime-local" 
@@ -65,7 +67,6 @@
                                     <span asp-validation-for="StartDate" class="text-danger small"></span>
                                 </div>
                                 
-                                <!-- Прогресс -->
                                 <div class="form-group mb-3">
                                     <label asp-for="Progress" class="form-label">Прогресс (%)</label>
                                     <input asp-for="Progress" type="range" class="form-range" min="0" max="100" value="0"
@@ -76,12 +77,13 @@
                             </div>
                         </div>
                         
-                        <!-- Примечания -->
                         <div class="form-group mb-3">
                             <label asp-for="Notes" class="form-label">Примечания</label>
                             <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
                             <span asp-validation-for="Notes" class="text-danger small"></span>
                         </div>
+
+                        
                         
                         <div class="form-group mt-4">
                             <button type="submit" class="btn btn-primary px-4 me-2">
@@ -97,3 +99,22 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('ProductId').addEventListener('change', async function() {
+    const productId = this.value;
+    const response = await fetch(`/api/products/${productId}/materials`);
+    const materials = await response.json();
+    
+    let html = '<ul>';
+    materials.forEach(m => {
+        html += `<li>${m.materialName}: 
+                <span class="${m.isSufficient ? 'text-success' : 'text-danger'}">
+                ${m.available} / ${m.required} ${m.unit}
+                </span></li>`;
+    });
+    html += '</ul>';
+    
+    document.getElementById('material-validation').innerHTML = html;
+});
+</script>

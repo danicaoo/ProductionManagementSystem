@@ -7,33 +7,41 @@ namespace ProductionManagementSystem.Services
     public class ProductionService : IProductionService
     {
         private readonly ApplicationDbContext _context;
+    private readonly ILogger<ProductionService> _logger; 
 
-        public ProductionService(ApplicationDbContext context)
+    public ProductionService(
+        ApplicationDbContext context, 
+        ILogger<ProductionService> logger) 
+    {
+        _context = context;
+        _logger = logger;
+    }
+    
+public async Task<(bool IsAvailable, Dictionary<int, decimal> MissingMaterials)> 
+    CheckMaterialsAvailability(int productId, int quantity)
+{
+    var missingMaterials = new Dictionary<int, decimal>();
+    bool isAvailable = true;
+
+    var productMaterials = await _context.ProductMaterials
+        .Where(pm => pm.ProductId == productId)
+        .Include(pm => pm.Material)
+        .ToListAsync();
+
+    foreach (var pm in productMaterials)
+    {
+        if (pm.Material == null) continue;
+        
+        var requiredAmount = pm.QuantityNeeded * quantity;
+        if (pm.Material.Quantity < requiredAmount)
         {
-            _context = context;
+            isAvailable = false;
+            missingMaterials.Add(pm.Material.Id, requiredAmount - pm.Material.Quantity);
         }
+    }
 
-        public async Task<bool> CheckMaterialsAvailability(int productId, int quantity)
-        {
-            var productMaterials = await _context.ProductMaterials
-                .Where(pm => pm.ProductId == productId)
-                .Include(pm => pm.Material)
-                .ToListAsync();
-
-            foreach (var pm in productMaterials)
-            {
-                if (pm.Material == null) return false;
-                
-                var requiredAmount = pm.QuantityNeeded * quantity;
-                if (pm.Material.Quantity < requiredAmount)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
+    return (isAvailable, missingMaterials);
+}
         public async Task<TimeSpan> CalculateProductionTime(int productId, int quantity, int? productionLineId)
         {
             var product = await _context.Products.FindAsync(productId);
@@ -55,64 +63,67 @@ namespace ProductionManagementSystem.Services
         }
 
         public async Task<bool> ReserveMaterials(int productId, int quantity)
+{
+    var productMaterials = await _context.ProductMaterials
+        .Where(pm => pm.ProductId == productId)
+        .Include(pm => pm.Material)
+        .ToListAsync();
+
+    foreach (var pm in productMaterials)
+    {
+        if (pm.Material == null) return false;
+        
+        var requiredAmount = pm.QuantityNeeded * quantity;
+        if (pm.Material.Quantity < requiredAmount)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            
-            try
-            {
-                var productMaterials = await _context.ProductMaterials
-                    .Where(pm => pm.ProductId == productId)
-                    .Include(pm => pm.Material)
-                    .ToListAsync();
-
-                foreach (var pm in productMaterials)
-                {
-                    if (pm.Material == null) return false;
-                    
-                    var requiredAmount = pm.QuantityNeeded * quantity;
-                    pm.Material.Quantity -= requiredAmount;
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return true;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                return false;
-            }
+            return false; 
         }
+    }
 
+    foreach (var pm in productMaterials)
+{
+    if (pm.Material == null) 
+    {
+        _logger.LogWarning($"Material not found for product material {pm.ProductId}-{pm.MaterialId}");
+        continue;
+    }
+    
+    var requiredAmount = pm.QuantityNeeded * quantity;
+    pm.Material.Quantity -= requiredAmount;
+}
+
+    await _context.SaveChangesAsync();
+    return true;
+}
         public async Task<bool> ReleaseMaterials(int productId, int quantity)
+{
+    using var transaction = await _context.Database.BeginTransactionAsync();
+    
+    try
+    {
+        var productMaterials = await _context.ProductMaterials
+            .Where(pm => pm.ProductId == productId)
+            .Include(pm => pm.Material)
+            .ToListAsync();
+
+        foreach (var pm in productMaterials)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            if (pm.Material == null) return false;
             
-            try
-            {
-                var productMaterials = await _context.ProductMaterials
-                    .Where(pm => pm.ProductId == productId)
-                    .Include(pm => pm.Material)
-                    .ToListAsync();
-
-                foreach (var pm in productMaterials)
-                {
-                    if (pm.Material == null) return false;
-                    
-                    var requiredAmount = pm.QuantityNeeded * quantity;
-                    pm.Material.Quantity += requiredAmount;
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return true;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                return false;
-            }
+            var releasedAmount = pm.QuantityNeeded * quantity;
+            pm.Material.Quantity += releasedAmount;
         }
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return true;
+    }
+    catch
+    {
+        await transaction.RollbackAsync();
+        return false;
+    }
+}
 
         public async Task UpdateProductionLineStatus(int lineId, string status)
         {

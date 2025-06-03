@@ -1,12 +1,15 @@
 using ProductionManagementSystem.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProductionManagementSystem.Services
 {
     public interface IProductionService
     {
-        Task<bool> CheckMaterialsAvailability(int productId, int quantity);
+        Task<(bool IsAvailable, Dictionary<int, decimal> MissingMaterials)> CheckMaterialsAvailability(int productId, int quantity);
         Task<TimeSpan> CalculateProductionTime(int productId, int quantity, int? productionLineId);
         Task<bool> ReserveMaterials(int productId, int quantity);
         Task<bool> ReleaseMaterials(int productId, int quantity);
@@ -29,11 +32,5 @@ namespace ProductionManagementSystem.Services
         Task<Product> CreateProductAsync(Product product);
     }
 
-    public interface IWorkOrderService
-    {
-        Task<List<WorkOrder>> GetWorkOrdersAsync(string? status, string? date);
-        Task<WorkOrder> CreateWorkOrderAsync(WorkOrder workOrder);
-        Task UpdateWorkOrderProgressAsync(int id, decimal progress);
-        Task<WorkOrder?> GetWorkOrderDetailsAsync(int id);
-    }
+    
 }
